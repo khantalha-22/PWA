@@ -1,0 +1,931 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chain IT - Create Item</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { sans: ['Inter', 'sans-serif'] },
+                    colors: {
+                        brand: '#6BBF4E',
+                        navy: '#0c1a2e'
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { background-color: #111827; margin: 0; }
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+        
+        .step {
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: white;
+            transition: transform 0.4s cubic-bezier(0.25, 0.8, 0.25, 1), opacity 0.4s;
+            overflow-y: auto; overflow-x: hidden;
+            display: flex; flex-direction: column;
+        }
+        .step-hidden-right { transform: translateX(100%); opacity: 0; pointer-events: none; }
+        .step-hidden-left { transform: translateX(-100%); opacity: 0; pointer-events: none; }
+        .step-active { transform: translateX(0%); opacity: 1; pointer-events: auto; z-index: 10; }
+        
+        .bottom-nav {
+            position: absolute; bottom: 0; width: 100%; height: 85px;
+            background-color: #0d1e33; z-index: 50; border-radius: 0 0 36px 36px;
+            transition: transform 0.4s ease;
+        }
+        .nav-hidden { transform: translateY(100%); opacity: 0; pointer-events: none; }
+        .nav-curve {
+            position: absolute; top: -30px; left: 50%; transform: translateX(-50%);
+            width: 84px; height: 38px; background-color: white;
+            border-bottom-left-radius: 44px; border-bottom-right-radius: 44px;
+        }
+        
+        .radio-selected { border: 6px solid #6BBF4E !important; background-color: white !important; }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+<!-- Mobile Viewport Simulation -->
+<div class="w-full max-w-[390px] h-[844px] bg-white relative overflow-hidden sm:rounded-[36px] sm:border-[8px] sm:border-gray-900 shadow-2xl flex flex-col">
+
+    <!-- Global Top Bar (Status) -->
+    <div class="absolute top-0 w-full z-40 bg-white">
+        <div class="flex justify-between items-center px-6 pt-3 pb-2 text-sm font-semibold text-black">
+            <span class="text-[14px]">6:15</span>
+            <div class="flex space-x-1.5 items-center">
+                <i data-lucide="bar-chart-2" class="w-[14px] h-[14px] rotate-[-90deg]"></i>
+                <span class="text-[10px] font-bold tracking-tight">5G</span>
+                <div class="w-6 h-[11px] border border-gray-800 rounded-[3px] p-[1px] relative">
+                    <div class="bg-gray-800 h-full w-[25%] rounded-[1px]"></div>
+                    <div class="absolute right-[-3px] top-1/2 transform -translate-y-1/2 w-[2px] h-1.5 bg-gray-800 rounded-r-sm"></div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- App Version -->
+        <div class="flex justify-center items-center pb-2 border-b border-gray-100 relative">
+            <div class="flex items-center">
+                <span class="font-bold text-black text-[14px] border-b-2 border-black leading-none pb-0.5">develop</span> 
+                <span class="text-[11px] text-gray-500 font-medium ml-2">1.11.6 (1)</span>
+            </div>
+            <!-- Global Back Button (Hidden on Step 1) -->
+            <button id="global-back" onclick="goBack()" class="absolute left-2 top-0 p-2 hidden">
+                <i data-lucide="chevron-left" class="w-6 h-6 stroke-[2.5]"></i>
+            </button>
+            <h2 id="global-title" class="absolute font-bold text-[17px] top-[7px] w-full text-center pointer-events-none hidden">Create Item</h2>
+        </div>
+    </div>
+
+    <!-- Step 0: Homepage -->
+    <div id="step0" class="step step-active pt-[78px] pb-[100px] bg-[#f9fafb]">
+        <div class="px-5 py-4">
+            <!-- Hamburger -->
+            <button class="mb-5"><i data-lucide="menu" class="w-6 h-6 text-gray-800"></i></button>
+
+            <!-- Profile Card -->
+            <div class="bg-white rounded-[14px] p-4 shadow-[0_2px_10px_rgba(0,0,0,0.03)] border border-gray-100 flex flex-col gap-3 mb-5">
+                <div class="flex items-center gap-3">
+                    <div class="w-[52px] h-[52px] bg-brand rounded-full flex items-center justify-center text-white font-bold text-xl">MB</div>
+                    <div>
+                        <div class="text-[14px] text-gray-700 font-medium mb-0.5">Hello,</div>
+                        <div class="text-[15px] font-bold text-brand uppercase tracking-wide">MARISA BERNHEISER</div>
+                    </div>
+                </div>
+                <div class="inline-flex py-1.5 px-3 rounded-md bg-[#fdf5e0] w-fit items-center gap-2 mt-1">
+                    <div class="w-[20px] h-[20px] bg-[#d9a036] rounded-full flex items-center justify-center text-white text-[11px] font-bold">7</div>
+                    <span class="text-[#d9a036] text-[12px] font-bold pr-1">ID Scan (Unverified)</span>
+                </div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button class="flex-[1] min-w-0 bg-[#f7fbf5] border border-[#d2ebc8] rounded-[10px] p-2.5 shadow-sm flex flex-col items-center justify-center gap-1.5 hover:bg-gray-50 transition-colors">
+                    <div class="w-9 h-9 border-2 border-[#b5e0a8] rounded flex items-center justify-center bg-[#eaf7e6]">
+                        <i data-lucide="scan" class="w-5 h-5 text-brand stroke-[2]"></i>
+                    </div>
+                    <span class="text-[11px] font-medium text-brand text-center leading-tight">Scan QR Code</span>
+                </button>
+                <button class="flex-[1] min-w-0 bg-[#f7fbf5] border border-[#d2ebc8] rounded-[10px] p-2.5 shadow-sm flex flex-col items-center justify-center gap-1.5 hover:bg-gray-50 transition-colors">
+                    <div class="w-9 h-9 border-2 border-[#b5e0a8] rounded flex items-center justify-center bg-[#eaf7e6]">
+                        <i data-lucide="share-2" class="w-5 h-5 text-brand stroke-[2]"></i>
+                    </div>
+                    <span class="text-[11px] font-medium text-brand text-center leading-tight">Share My Info</span>
+                </button>
+                <button onclick="goToStep(1)" class="flex-[1] min-w-0 bg-[#f7fbf5] border border-[#d2ebc8] rounded-[10px] p-2.5 shadow-sm flex flex-col items-center justify-center gap-1.5 hover:bg-gray-50 transition-colors">
+                    <div class="w-9 h-9 border-2 border-[#b5e0a8] rounded flex items-center justify-center bg-[#eaf7e6]">
+                        <i data-lucide="plus" class="w-5 h-5 text-brand stroke-[2]"></i>
+                    </div>
+                    <span class="text-[11px] font-medium text-brand text-center leading-tight">Create Item</span>
+                </button>
+            </div>
+
+            <!-- My Tasks Section -->
+            <div class="flex justify-between items-end mb-4">
+                <div class="flex items-center">
+                    <h3 class="text-[17px] font-bold text-gray-900">My Tasks (To Do)</h3>
+                    <div class="bg-[#eaf5e6] text-brand px-2 py-0.5 rounded text-[13px] font-bold ml-2">10</div>
+                </div>
+                <button class="text-[#6BBF4E] text-[13px] font-semibold mb-0.5">View more</button>
+            </div>
+            
+            <div class="flex flex-col gap-3 mb-4">
+                <div class="bg-white border border-gray-200 rounded-[12px] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+                    <h4 class="font-bold text-gray-900 text-[14px] mb-1.5">Check Your Criminal Background (All Time)</h4>
+                    <p class="text-[13px] text-gray-500 leading-snug mb-3">You have been invited by BIT Generic to complete a criminal background check.</p>
+                    <div class="flex justify-between text-[11px] text-gray-500 font-medium">
+                        <span>Requested by BIT Generic</span>
+                        <span>01/29/2026</span>
+                    </div>
+                </div>
+                <div class="bg-white border border-gray-200 rounded-[12px] p-4 shadow-[0_2px_4px_rgba(0,0,0,0.02)]">
+                    <h4 class="font-bold text-gray-900 text-[14px] mb-1.5">Retrieve Bank Statements</h4>
+                    <p class="text-[13px] text-gray-500 leading-snug mb-3">Connect your bank account and retrieve statements.</p>
+                    <div class="flex justify-between text-[11px] text-gray-500 font-medium">
+                        <span>Requested by BIT Generic</span>
+                        <span>01/29/2026</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-[12px] text-gray-500 font-medium mb-8">Showing 1-2 of 10</div>
+            
+            <!-- My Collection Stub -->
+            <div class="flex justify-between items-end mb-4">
+                <h3 class="text-[17px] font-bold text-gray-900">My Collection</h3>
+                <button class="text-brand text-[13px] font-semibold mb-0.5">View more</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 1: Item Details Form -->
+    <div id="step1" class="step step-hidden-right pt-[78px] pb-[100px]">
+        <div class="px-5 flex flex-col gap-[18px] py-4 h-full">
+            <div>
+                <label class="block text-[13px] text-gray-900 mb-1.5 font-medium">Category</label>
+                <div class="custom-dropdown relative z-20 w-full">
+                    <div class="dropdown-selected border border-gray-200 rounded-lg h-[46px] px-3 flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-brand focus-within:border-brand bg-gray-50/50 hover:bg-white transition-colors group" tabindex="0">
+                        <span class="dropdown-text text-[15px] text-gray-400 truncate transition-transform duration-200 block">Select Category</span>
+                        <div class="border-l border-gray-200 pl-2 ml-2 h-full py-2.5 flex items-center group-hover:border-brand/30 transition-colors">
+                            <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 dropdown-icon transition-transform duration-200 group-hover:text-brand"></i>
+                        </div>
+                    </div>
+                    
+                    <div class="dropdown-menu absolute left-0 right-0 top-[110%] bg-white border border-gray-100 rounded-[12px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] z-30 hidden flex-col overflow-hidden py-1.5 transition-opacity duration-200">
+                        <div class="dropdown-option px-4 py-3 hover:bg-[#f0f9eb] hover:text-brand cursor-pointer text-[14px] text-gray-700 font-medium transition-colors border-b border-gray-50 last:border-0" data-value="object">
+                            Object (Physical or Digital Item, Product)
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div>
+                <label class="block text-[13px] text-gray-900 mb-1.5 font-medium">Name</label>
+                <input type="text" id="product-name-input" placeholder="Enter name" class="w-full h-[46px] border border-gray-200 rounded-lg pl-3 text-[15px] placeholder-gray-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand">
+            </div>
+            
+            <div>
+                <label class="block text-[13px] text-gray-900 mb-1.5 font-medium">Description</label>
+                <textarea placeholder="Enter description" class="w-full h-[100px] border border-gray-200 rounded-lg p-3 text-[15px] placeholder-gray-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand resize-none"></textarea>
+                <div class="text-right text-[12px] text-gray-400 mt-1 font-medium">0 / 250</div>
+            </div>
+            
+            <div>
+                <label class="block text-[13px] text-gray-900 mb-1.5 font-medium">Tags</label>
+                <div class="flex gap-3">
+                    <input type="text" id="tag-input" placeholder="Enter Tag" class="flex-1 h-[46px] border border-gray-200 rounded-lg pl-3 text-[15px] placeholder-gray-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand" onkeypress="if(event.key === 'Enter') addTag()">
+                    <button onclick="addTag()" class="bg-[#6BBF4E] text-white px-5 rounded-lg font-medium w-[75px] h-[46px] shadow-sm active:scale-95 transition-transform">Add</button>
+                </div>
+                <div id="tags-container" class="flex flex-wrap gap-2 mt-3 empty:hidden"></div>
+            </div>
+            
+            <div class="mt-auto pt-6 flex flex-col gap-3">
+                <button onclick="goToStep(2)" class="w-full bg-brand text-white h-[48px] rounded-lg font-semibold text-[15px] shadow-sm tracking-wide">Create Item</button>
+                <button class="w-full bg-white border border-brand text-brand h-[48px] rounded-lg font-semibold text-[15px] tracking-wide">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Step 2: Add Photos -->
+    <div id="step2" class="step step-hidden-right pt-[120px]">
+        <div class="flex-1 flex flex-col items-center pt-10 px-4 text-center relative w-full h-full overflow-y-auto">
+            <div id="photo-preview-container" class="w-full grid grid-cols-2 gap-3 mb-4 hidden"></div>
+            <div id="photo-placeholder" class="flex flex-col items-center justify-center my-auto pt-6">
+                <div class="mb-4 text-gray-300">
+                    <svg class="w-[84px] h-[84px]" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="1.5">
+                        <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
+                        <circle cx="8.5" cy="8.5" r="1.5"/>
+                        <polyline points="21 15 16 10 5 21"/>
+                    </svg>
+                </div>
+                <h3 class="text-[20px] font-bold text-gray-900 mb-1 leading-tight">Add Photos</h3>
+                <p class="text-gray-500 text-[14px]">Select Photos from your gallery or use your camera</p>
+            </div>
+        </div>
+        
+        <div class="absolute bottom-[100px] right-6 z-30">
+            <input type="file" id="photo-upload" accept="image/*" multiple class="hidden" onchange="handlePhotoUpload(event)">
+            <button onclick="document.getElementById('photo-upload').click()" class="w-[56px] h-[56px] bg-brand rounded-full shadow-[0_4px_12px_rgba(107,191,78,0.4)] flex items-center justify-center text-white relative transition-transform active:scale-95">
+                <i data-lucide="camera" class="w-[22px] h-[22px]"></i>
+                <div class="absolute -top-1 -right-1 bg-brand rounded-full w-[22px] h-[22px] border-[3px] border-white flex items-center justify-center">
+                    <i data-lucide="plus" class="w-3 h-3 text-white font-bold stroke-[3]"></i>
+                </div>
+            </button>
+        </div>
+
+        <div class="px-5 flex gap-3 py-[20px] border-t border-gray-100 bg-white mt-auto">
+            <button onclick="goBack()" class="flex-1 bg-white border border-brand text-brand h-[48px] rounded-lg font-semibold text-[15px]">Back</button>
+            <button onclick="goToStep(3)" class="flex-1 bg-brand text-white h-[48px] rounded-lg font-semibold text-[15px] shadow-sm">Continue</button>
+        </div>
+    </div>
+
+    <!-- Step 3: Creator Roles -->
+    <div id="step3" class="step step-hidden-right pt-[110px] bg-white">
+        <div class="px-5 flex-1 flex flex-col">
+            <h3 class="text-[19px] font-bold text-gray-900 mb-1">Creator Roles</h3>
+            <p class="text-gray-500 text-[14px] mb-6 leading-snug">Are you the creator of this product or are you creating it on someone's behalf?</p>
+            
+            <div class="flex flex-col gap-[14px]">
+                <label class="border border-gray-200 rounded-xl p-[18px] flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-brand" onclick="toggleCreatorMode('creator', this)">
+                    <div class="flex-1 pr-3">
+                        <h4 class="font-semibold text-gray-900 text-[15px]">I am the creator</h4>
+                    </div>
+                    <div class="w-[22px] h-[22px] rounded-full border-2 border-[#d1d5db] flex items-center justify-center shrink-0 radio-btn-creator transition-all"></div>
+                </label>
+                
+                <label class="border border-gray-200 rounded-xl p-[18px] flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-brand mt-4" onclick="toggleCreatorMode('behalf', this)">
+                    <div class="flex-1 pr-3">
+                        <h4 class="font-semibold text-gray-900 text-[15px]">Creating on Someone's Behalf</h4>
+                    </div>
+                    <div class="w-[22px] h-[22px] rounded-full border-2 border-[#d1d5db] flex items-center justify-center shrink-0 radio-btn-creator transition-all"></div>
+                </label>
+
+                <div id="behalf-section" class="px-1 hidden">
+                    <label class="block text-[13px] text-gray-900 mb-1.5 font-medium">Original Creator's Email</label>
+                    <input type="email" placeholder="creator@email.com" class="w-full h-[46px] border border-gray-200 rounded-lg pl-3 text-[15px] placeholder-gray-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand">
+                </div>
+            </div>
+        </div>
+
+        <div class="px-5 flex gap-3 py-[20px] border-t border-gray-100 bg-white mt-auto">
+            <button onclick="goBack()" class="flex-1 bg-white border border-brand text-brand h-[48px] rounded-lg font-semibold text-[15px]">Back</button>
+            <button id="step3-continue" onclick="continueFromCreatorRoles()" class="flex-1 bg-[#a3d891] text-white h-[48px] rounded-lg font-semibold text-[15px] pointer-events-none transition-colors">Continue</button>
+        </div>
+    </div>
+
+    <!-- Step 4: Configure Royalties -->
+    <div id="step4" class="step step-hidden-right pt-[110px] bg-white">
+        <div class="px-5 flex-1 flex flex-col">
+            <h3 class="text-[19px] font-bold text-gray-900 mb-1">Configure Royalties</h3>
+            <p class="text-gray-500 text-[14px] mb-6 leading-snug">Set the royalties structure for future transactions of this product.</p>
+            
+            <div class="flex flex-col gap-5">
+                <div>
+                    <label class="block text-[13px] text-gray-900 mb-1.5 font-medium">Royalty Type</label>
+                    <div class="custom-dropdown relative z-20 w-full" id="dropdown-royalty-type">
+                        <div class="dropdown-selected border border-gray-200 rounded-lg h-[46px] px-3 flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-brand focus-within:border-brand bg-gray-50/50 hover:bg-white transition-colors group" tabindex="0">
+                            <span class="dropdown-text text-[15px] text-gray-900 truncate font-medium transition-transform duration-200 block">Standard Royalty</span>
+                            <div class="border-l border-gray-200 pl-2 ml-2 h-full py-2.5 flex items-center group-hover:border-brand/30 transition-colors">
+                                <i data-lucide="chevron-down" class="w-4 h-4 text-gray-400 dropdown-icon transition-transform duration-200 group-hover:text-brand"></i>
+                            </div>
+                        </div>
+                        
+                        <div class="dropdown-menu absolute left-0 right-0 top-[110%] bg-white border border-gray-100 rounded-[12px] shadow-[0_8px_30px_rgba(0,0,0,0.12)] z-30 hidden flex-col overflow-hidden py-1.5 transition-opacity duration-200">
+                            <div class="dropdown-option px-4 py-3 hover:bg-[#f0f9eb] hover:text-brand cursor-pointer text-[14px] text-gray-700 font-medium transition-colors border-b border-gray-50 last:border-0" data-value="standard">Standard Royalty</div>
+                            <div class="dropdown-option px-4 py-3 hover:bg-[#f0f9eb] hover:text-brand cursor-pointer text-[14px] text-gray-700 font-medium transition-colors border-b border-gray-50 last:border-0" data-value="investment">Investment-Based Royalty</div>
+                            <div class="dropdown-option px-4 py-3 hover:bg-[#f0f9eb] hover:text-brand cursor-pointer text-[14px] text-gray-700 font-medium transition-colors border-b border-gray-50 last:border-0" data-value="time">Time-Bound Royalty</div>
+                            <div class="dropdown-option px-4 py-3 hover:bg-[#f0f9eb] hover:text-brand cursor-pointer text-[14px] text-gray-700 font-medium transition-colors border-b border-gray-50 last:border-0" data-value="declining">Declining Royalty</div>
+                            <div class="dropdown-option px-4 py-3 hover:bg-[#f0f9eb] hover:text-brand cursor-pointer text-[14px] text-gray-700 font-medium transition-colors border-b border-gray-50 last:border-0" data-value="split">Split Royalty (Multi-Party)</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="royalty-forms-container" class="relative mt-2">
+                    
+                    <!-- 1. Standard Royalty Block -->
+                    <div id="royalty-standard" class="royalty-form-block animate-fade-in block">
+                        <div class="mb-5">
+                            <label class="block text-[13px] text-gray-900 mb-1.5 font-medium">Royalty Percentage (%)</label>
+                            <input type="number" placeholder="e.g. 5" class="w-full h-[46px] border border-gray-200 rounded-lg pl-3 text-[15px] placeholder-gray-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand">
+                        </div>
+                        
+                        <label class="flex items-center justify-between cursor-pointer border border-gray-200 rounded-xl p-4 focus-within:ring-1 focus-within:ring-brand hover:bg-gray-50/50 transition-colors">
+                            <span class="font-semibold text-gray-900 text-[14px]">Apply to all future transfers</span>
+                            <div class="w-11 h-6 bg-brand rounded-full relative transition duration-200 flex-shrink-0">
+                                <div class="w-5 h-5 bg-white rounded-full absolute top-[2px] left-[22px] shadow-sm transition-transform duration-200"></div>
+                            </div>
+                        </label>
+                        
+                        <p class="text-[13px] text-gray-500 mt-4 leading-snug bg-blue-50/50 p-3 rounded-lg border border-blue-100 flex gap-2">
+                            <i data-lucide="info" class="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5"></i>
+                            <span>Fixed percentage applied on every resale of the asset.</span>
+                        </p>
+                    </div>
+
+                    <!-- 2. Investment-Based Royalty Block -->
+                    <div id="royalty-investment" class="royalty-form-block animate-fade-in hidden">
+                        <div class="flex flex-col gap-4 mb-5">
+                            <div>
+                                <label class="block text-[13px] text-gray-900 mb-1.5 font-medium">Investor Address & Email</label>
+                                <input type="text" placeholder="0x... or email@domain.com" class="w-full h-[46px] border border-gray-200 rounded-lg pl-3 text-[15px] placeholder-gray-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand">
+                            </div>
+                            
+                            <div class="flex gap-3">
+                                <div class="flex-1">
+                                    <label class="block text-[13px] text-gray-900 mb-1.5 font-medium">Investment</label>
+                                    <div class="relative">
+                                        <span class="absolute left-3 top-[13px] text-gray-500 font-medium">$</span>
+                                        <input type="number" placeholder="10,000" class="w-full h-[46px] border border-gray-200 rounded-lg pl-7 pr-3 text-[15px] placeholder-gray-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand">
+                                    </div>
+                                </div>
+                                <div class="w-[35%]">
+                                    <label class="block text-[13px] text-gray-900 mb-1.5 font-medium">Royalty (%)</label>
+                                    <input type="number" placeholder="15" class="w-full h-[46px] border border-gray-200 rounded-lg pl-3 text-[15px] placeholder-gray-400 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Progress preview -->
+                        <div class="border border-gray-200 rounded-xl p-4 mb-4 bg-gray-50/50">
+                            <div class="flex justify-between text-[13px] text-gray-700 font-medium mb-1.5">
+                                <span>Recoupment Progress</span>
+                                <span>$0 / Auto</span>
+                            </div>
+                            <div class="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+                                <div class="w-[5%] h-full bg-brand rounded-full"></div>
+                            </div>
+                        </div>
+
+                        <label class="flex items-center justify-between cursor-pointer border border-gray-200 rounded-xl p-4 focus-within:ring-1 focus-within:ring-brand hover:bg-gray-50/50 transition-colors">
+                            <span class="font-semibold text-gray-900 text-[14px]">Auto-disable after recoupment</span>
+                            <div class="w-11 h-6 bg-brand rounded-full relative transition duration-200 flex-shrink-0">
+                                <div class="w-5 h-5 bg-white rounded-full absolute top-[2px] left-[22px] shadow-sm transition-transform duration-200"></div>
+                            </div>
+                        </label>
+                        
+                        <p class="text-[13px] text-gray-500 mt-4 leading-snug bg-blue-50/50 p-3 rounded-lg border border-blue-100 flex gap-2">
+                            <i data-lucide="info" class="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5"></i>
+                            <span>Royalty remains active until investor fully recovers their investment.</span>
+                        </p>
+                    </div>
+
+                    <!-- 3. Time-Bound Royalty Block -->
+                    <div id="royalty-time" class="royalty-form-block animate-fade-in hidden">
+                        <div class="mb-5 flex gap-3">
+                            <div class="flex-1">
+                                <label class="block text-[13px] text-gray-900 mb-1.5 font-medium">Royalty (%)</label>
+                                <input type="number" placeholder="5" class="w-full h-[46px] border border-gray-200 rounded-lg pl-3 text-[15px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand">
+                            </div>
+                            <div class="flex-1">
+                                <label class="block text-[13px] text-gray-900 mb-1.5 font-medium">End Date</label>
+                                <div class="relative">
+                                    <input type="date" class="w-full h-[46px] border border-gray-200 rounded-lg px-3 text-[14px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand text-gray-700 bg-white shadow-sm">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Timeline Graph preview -->
+                        <div class="border border-gray-200 rounded-xl p-4 mb-4">
+                            <div class="flex items-center justify-between relative">
+                                <div class="absolute h-[3px] bg-gray-100 left-4 right-4 top-1/2 -translate-y-1/2 z-0 rounded-full"></div>
+                                <div class="absolute h-[3px] bg-brand/50 left-4 w-1/2 top-1/2 -translate-y-1/2 z-0 rounded-full"></div>
+                                
+                                <div class="flex flex-col items-center gap-1.5 z-10 w-16">
+                                    <div class="w-3.5 h-3.5 rounded-full bg-brand ring-[3px] ring-green-100"></div>
+                                    <span class="text-[10px] font-bold text-brand uppercase tracking-wide">Mint Date</span>
+                                </div>
+                                
+                                <div class="flex flex-col items-center gap-1.5 z-10 w-16">
+                                    <div class="w-3 h-3 rounded-full bg-gray-300 ring-[3px] ring-white border border-gray-200"></div>
+                                    <span class="text-[10px] font-bold text-gray-400 uppercase tracking-wide">End Date</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <label class="flex items-center justify-between cursor-pointer border border-gray-200 rounded-xl p-4 focus-within:ring-1 focus-within:ring-brand hover:bg-gray-50/50 transition-colors">
+                            <span class="font-semibold text-gray-900 text-[14px]">Auto-expire royalty after end date</span>
+                            <div class="w-11 h-6 bg-brand rounded-full relative transition duration-200 flex-shrink-0">
+                                <div class="w-5 h-5 bg-white rounded-full absolute top-[2px] left-[22px] shadow-sm transition-transform duration-200"></div>
+                            </div>
+                        </label>
+                        
+                        <p class="text-[13px] text-gray-500 mt-4 leading-snug bg-blue-50/50 p-3 rounded-lg border border-blue-100 flex gap-2">
+                            <i data-lucide="info" class="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5"></i>
+                            <span>Royalty applies only within a defined time window.</span>
+                        </p>
+                    </div>
+
+                    <!-- 4. Declining Royalty Block -->
+                    <div id="royalty-declining" class="royalty-form-block animate-fade-in hidden">
+                        <div class="bg-gray-50/50 border border-gray-200 rounded-xl p-4 mb-5">
+                            <div class="flex justify-between items-center mb-3">
+                                <h4 class="font-bold text-gray-900 text-[14px]">Step-Down Rules</h4>
+                                <button class="text-brand text-[13px] font-semibold flex items-center gap-1 hover:text-[#529e37] transition-colors"><i data-lucide="plus" class="w-3.5 h-3.5 border-2 border-brand rounded-full p-[1px]"></i> Add Rule</button>
+                            </div>
+                            
+                            <div class="flex flex-col gap-2">
+                                <div class="flex gap-2 items-center">
+                                    <input type="text" value="1st Sale" readonly class="w-[45%] h-[40px] border border-gray-200 bg-white rounded-md px-3 text-[13px] text-gray-700 outline-none">
+                                    <i data-lucide="arrow-right" class="w-3 h-3 text-gray-400 mx-1 flex-shrink-0"></i>
+                                    <input type="text" value="7%" class="flex-1 h-[40px] border border-gray-200 bg-white rounded-md px-3 text-[13px] text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-medium">
+                                </div>
+                                <div class="flex gap-2 items-center">
+                                    <input type="text" value="2nd Sale" readonly class="w-[45%] h-[40px] border border-gray-200 bg-white rounded-md px-3 text-[13px] text-gray-700 outline-none">
+                                    <i data-lucide="arrow-right" class="w-3 h-3 text-gray-400 mx-1 flex-shrink-0"></i>
+                                    <input type="text" value="5%" class="flex-1 h-[40px] border border-gray-200 bg-white rounded-md px-3 text-[13px] text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-medium">
+                                </div>
+                                <div class="flex gap-2 items-center">
+                                    <input type="text" value="3rd Sale" readonly class="w-[45%] h-[40px] border border-gray-200 bg-white rounded-md px-3 text-[13px] text-gray-700 outline-none">
+                                    <i data-lucide="arrow-right" class="w-3 h-3 text-gray-400 mx-1 flex-shrink-0"></i>
+                                    <input type="text" value="3%" class="flex-1 h-[40px] border border-gray-200 bg-white rounded-md px-3 text-[13px] text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-medium">
+                                </div>
+                                <div class="flex gap-2 items-center">
+                                    <input type="text" value="4+ Sales" readonly class="w-[45%] h-[40px] border border-gray-200 bg-white rounded-md px-3 text-[13px] text-gray-700 outline-none">
+                                    <i data-lucide="arrow-right" class="w-3 h-3 text-gray-400 mx-1 flex-shrink-0"></i>
+                                    <input type="text" value="1%" class="flex-1 h-[40px] border border-gray-200 bg-white rounded-md px-3 text-[13px] text-gray-900 focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand font-medium">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p class="text-[13px] text-gray-500 mt-2 flex gap-2">
+                            <i data-lucide="trending-down" class="w-4 h-4 text-brand"></i>
+                            <span>Royalty decreases with each subsequent transfer.</span>
+                        </p>
+                    </div>
+
+                    <!-- 5. Split Royalty Block -->
+                    <div id="royalty-split" class="royalty-form-block animate-fade-in hidden">
+                        <div class="mb-5">
+                            <label class="block text-[13px] text-gray-900 mb-1.5 font-medium">Total Royalty Percentage (%)</label>
+                            <input type="number" placeholder="10" class="w-[120px] h-[46px] border border-gray-200 rounded-lg pl-3 text-[15px] focus:outline-none focus:border-brand focus:ring-1 focus:ring-brand">
+                        </div>
+                        
+                        <div class="border-t border-gray-100 pt-5 mb-5">
+                            <div class="flex justify-between items-center mb-3">
+                                <h4 class="font-bold text-gray-900 text-[14px]">Recipients (100% split)</h4>
+                                <button class="text-brand text-[13px] font-semibold flex items-center gap-1 hover:text-[#529e37] transition-colors"><i data-lucide="plus" class="w-3.5 h-3.5 border-2 border-brand rounded-full p-[1px]"></i> Add Stakeholder</button>
+                            </div>
+                            
+                            <div class="flex flex-col gap-3">
+                                <div class="bg-gray-50/50 border border-gray-200 rounded-lg p-3">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-[12px] font-bold text-gray-500 uppercase tracking-wide">Creator</span>
+                                        <span class="text-[13px] font-bold text-gray-900">70%</span>
+                                    </div>
+                                    <input type="text" value="0x71C...89af" class="w-full h-[36px] bg-white border border-gray-200 rounded text-[13px] px-2 outline-none text-gray-600">
+                                </div>
+                                
+                                <div class="bg-gray-50/50 border border-gray-200 rounded-lg p-3 relative">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="text-[12px] font-bold text-brand uppercase tracking-wide">Platform</span>
+                                        <span class="text-[13px] font-bold text-gray-900">30%</span>
+                                    </div>
+                                    <input type="text" value="Platform Wallet..." class="w-full h-[36px] bg-white border border-gray-200 rounded text-[13px] px-2 outline-none text-gray-600">
+                                    
+                                    <button class="absolute -right-2 -top-2 w-5 h-5 bg-white border border-gray-200 rounded-full flex items-center justify-center text-gray-400 hover:text-red-500 shadow-sm"><i data-lucide="x" class="w-2.5 h-2.5"></i></button>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p class="text-[13px] text-gray-500 leading-snug bg-blue-50/50 p-3 rounded-lg border border-blue-100 flex gap-2">
+                            <i data-lucide="info" class="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5"></i>
+                            <span>Royalty is automatically distributed among multiple stakeholders.</span>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-5 flex gap-3 py-[20px] border-t border-gray-100 bg-white mt-auto">
+            <button onclick="goBack()" class="flex-1 bg-white border border-brand text-brand h-[48px] rounded-lg font-semibold text-[15px]">Back</button>
+            <button onclick="goToStep(5)" class="flex-1 bg-brand text-white h-[48px] rounded-lg font-semibold text-[15px] shadow-sm">Continue</button>
+        </div>
+    </div>
+
+    <!-- Step 5: Select Privacy -->
+    <div id="step5" class="step step-hidden-right pt-[110px]">
+        <div class="px-5 flex-1 flex flex-col">
+            <h3 class="text-[19px] font-bold text-gray-900 mb-1">Select Privacy</h3>
+            <p class="text-gray-500 text-[14px] mb-6 leading-snug">What would you like to share about you in this item's details?</p>
+            
+            <div class="flex flex-col gap-[14px]">
+                <label class="border border-gray-200 rounded-xl p-[18px] flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-brand" onclick="selectPrivacy(this)">
+                    <div class="flex-1 pr-3">
+                        <h4 class="font-semibold text-gray-900 text-[15px]">Almost Nothing</h4>
+                        <p class="text-[13px] text-gray-500 mt-1 leading-snug">Keep Me anonymous and only show an obfuscated user id and state of residence.</p>
+                    </div>
+                    <div class="w-[22px] h-[22px] rounded-full border-2 border-[#d1d5db] flex items-center justify-center shrink-0 radio-btn transition-all"></div>
+                </label>
+                <label class="border border-gray-200 rounded-xl p-[18px] flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-brand" onclick="selectPrivacy(this)">
+                    <div class="flex-1 pr-3">
+                        <h4 class="font-semibold text-gray-900 text-[15px]">Some Information</h4>
+                        <p class="text-[13px] text-gray-500 mt-1 leading-snug">Share your First Name, Zip code and State.</p>
+                    </div>
+                    <div class="w-[22px] h-[22px] rounded-full border-2 border-[#d1d5db] flex items-center justify-center shrink-0 radio-btn transition-all"></div>
+                </label>
+                <label class="border border-gray-200 rounded-xl p-[18px] flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-brand" onclick="selectPrivacy(this)">
+                    <div class="flex-1 pr-3">
+                        <h4 class="font-semibold text-gray-900 text-[15px]">Everything</h4>
+                        <p class="text-[13px] text-gray-500 mt-1 leading-snug">Share the entire Who, What, When and Where details found in your Chain IT Digital Identity Profile.</p>
+                    </div>
+                    <div class="w-[22px] h-[22px] rounded-full border-2 border-[#d1d5db] flex items-center justify-center shrink-0 radio-btn transition-all"></div>
+                </label>
+            </div>
+        </div>
+
+        <div class="px-5 flex gap-3 py-[20px] border-t border-gray-100 bg-white mt-auto">
+            <button onclick="goBack()" class="flex-1 bg-white border border-brand text-brand h-[48px] rounded-lg font-semibold text-[15px]">Back</button>
+            <button id="step5-continue" onclick="goToStep(6)" class="flex-1 bg-[#a3d891] text-white h-[48px] rounded-lg font-semibold text-[15px] pointer-events-none transition-colors">Continue</button>
+        </div>
+    </div>
+
+    <!-- Step 6: Confirmation -->
+    <div id="step6" class="step step-hidden-right pt-[110px]">
+        <div class="px-5 flex-1 flex flex-col">
+            <h3 class="text-[20px] font-bold text-gray-900 mb-1.5 leading-tight">Product Details</h3>
+            <p class="text-gray-600 text-[14px] mb-5">Your Item has been created. See the details below.</p>
+            
+            <div class="border border-brand rounded-[14px] p-4 shadow-[0_2px_10px_rgba(107,191,78,0.1)] relative bg-white">
+                <div class="absolute top-4 right-4">
+                    <div class="w-8 h-8 rounded-lg border border-gray-200 flex items-center justify-center cursor-pointer">
+                        <i data-lucide="share-2" class="w-[14px] h-[14px] text-gray-500"></i>
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-3.5 mb-5">
+                    <div id="final-product-thumbnail" class="w-[50px] h-[50px] rounded overflow-hidden shadow-sm relative bg-blue-100 border border-gray-200 shrink-0">
+                        <!-- Simulated Product Image Thumbnail -->
+                        <div class="absolute w-full h-[60%] bg-[#fdbd7a] bottom-0"></div>
+                        <div class="absolute w-[60%] h-full bg-[#f97316] right-0 rounded-bl-[10px]"></div>
+                        <div class="absolute inset-x-2 top-2 h-2 bg-white rounded-full opacity-60"></div>
+                    </div>
+                    <div>
+                        <div class="flex items-baseline gap-1.5">
+                            <span id="product-name-display" class="font-bold text-gray-900 text-[18px]">OG</span>
+                            <span class="text-gray-500 text-[15px]">BIT Generic</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="flex gap-6 mb-4">
+                    <div class="flex items-center gap-1.5 text-gray-600 text-[13px] font-medium">
+                        <i data-lucide="calendar" class="w-[18px] h-[18px] text-brand"></i>
+                        04/17/2026
+                    </div>
+                    <div class="flex items-center gap-1.5 text-gray-600 text-[13px] font-medium">
+                        <i data-lucide="clock" class="w-[18px] h-[18px] text-brand"></i>
+                        06:15 PM
+                    </div>
+                </div>
+                
+                <div class="flex items-center gap-2">
+                    <div class="px-2.5 py-1.5 rounded-md bg-[#eaf5e6] text-brand flex items-center gap-1.5 text-[12px] font-bold">
+                        <div class="w-[13px] h-[13px] bg-brand rounded-full flex items-center justify-center">
+                            <i data-lucide="check" class="w-2 h-2 text-white stroke-[4]"></i>
+                        </div>
+                        Self Verified
+                    </div>
+                    <div class="px-2.5 py-1.5 rounded-md bg-[#eaf5e6] text-[#6BBF4E] border border-[#d2ebc8] flex items-center gap-1.5 text-[12px] font-bold">
+                        <i data-lucide="check-circle" class="w-[14px] h-[14px]"></i>
+                        Minted
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="px-5 flex gap-3 py-[20px] border-t border-gray-100 bg-white mt-auto">
+            <button onclick="goToStep(1)" class="flex-1 bg-white border border-brand text-brand h-[48px] rounded-lg font-semibold text-[15px]">Back to Collection</button>
+            <button class="flex-1 bg-brand text-white h-[48px] rounded-lg font-semibold text-[15px] shadow-sm">Organize Item</button>
+        </div>
+    </div>
+    
+    <!-- Global Bottom Nav -->
+    <div id="bottom-nav" class="bottom-nav flex items-center z-50">
+        <!-- SVG Cutout simulation: the white gap in the dark navy background -->
+        <div class="absolute -top-[23px] left-1/2 -translate-x-1/2 w-[80px] h-[25px] overflow-hidden pointer-events-none">
+            <div class="absolute w-[80px] h-[80px] bg-white rounded-full inset-x-0 bottom-0"></div>
+        </div>
+        
+        <div class="absolute -top-[35px] left-1/2 transform -translate-x-1/2 w-[66px] h-[66px] bg-[#6BBF4E] rounded-full shadow-[0_4px_16px_rgba(0,0,0,0.15)] flex items-center justify-center text-white cursor-pointer z-10 border-[6px] border-white">
+            <i data-lucide="qr-code" class="w-7 h-7"></i>
+        </div>
+        
+        <div class="w-full h-full flex justify-between px-3 pt-3">
+            <button id="nav-home" onclick="goToStep(0)" class="flex-1 flex flex-col items-center justify-start text-brand mt-1 transition-colors">
+                <i data-lucide="home" class="w-5 h-5 mb-1 stroke-[2]" fill="#6BBF4E" id="nav-icon-home"></i>
+                <span class="text-[9px] font-bold" id="nav-text-home">Home</span>
+                <div id="nav-bar-home" class="w-[18px] h-0.5 bg-brand rounded-full mt-1"></div>
+            </button>
+            <button class="flex-1 flex flex-col items-center justify-start text-white/60 hover:text-white mt-1 pr-6">
+                <i data-lucide="list-todo" class="w-5 h-5 mb-1 stroke-[2]"></i>
+                <span class="text-[9px] font-medium">My Tasks</span>
+                <div class="w-[18px] h-0.5 bg-transparent rounded-full mt-1"></div>
+            </button>
+            
+            <button id="nav-collection" onclick="goToStep(1)" class="flex-1 flex flex-col items-center justify-start text-white/60 hover:text-white pl-6 mt-1 transition-colors">
+                <i data-lucide="folder-closed" class="w-5 h-5 mb-1 fill-none" id="nav-icon-collection"></i>
+                <span class="text-[9px] font-medium" id="nav-text-collection">My Collection</span>
+                <div id="nav-bar-collection" class="w-[18px] h-0.5 bg-transparent rounded-full mt-1"></div>
+            </button>
+            <button class="flex-1 flex flex-col items-center justify-start text-white/60 hover:text-white mt-1">
+                <i data-lucide="clock" class="w-5 h-5 mb-1 stroke-[2]"></i>
+                <span class="text-[9px] font-medium">History</span>
+                <div class="w-[18px] h-0.5 bg-transparent rounded-full mt-1"></div>
+            </button>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    lucide.createIcons();
+
+    let currentStep = 0;
+    let creatorMode = null;
+    const titles = {
+        0: '',
+        1: '',
+        2: 'Create Item',
+        3: 'Creator Identity',
+        4: 'Select Privacy',
+        5: 'Product details'
+    };
+
+    function updateNavState(step) {
+        const homeBtn = document.getElementById('nav-home');
+        const collBtn = document.getElementById('nav-collection');
+        if (!homeBtn || !collBtn) return;
+        
+        // Reset both
+        homeBtn.className = "flex-1 flex flex-col items-center justify-start text-white/60 hover:text-white mt-1 transition-colors";
+        collBtn.className = "flex-1 flex flex-col items-center justify-start text-white/60 hover:text-white pl-6 mt-1 transition-colors";
+        document.getElementById('nav-icon-home').setAttribute('fill', 'none');
+        document.getElementById('nav-icon-collection').setAttribute('fill', 'none');
+        document.getElementById('nav-text-home').className = "text-[9px] font-medium";
+        document.getElementById('nav-text-collection').className = "text-[9px] font-medium";
+        document.getElementById('nav-bar-home').className = "w-[18px] h-0.5 bg-transparent rounded-full mt-1";
+        document.getElementById('nav-bar-collection').className = "w-[18px] h-0.5 bg-transparent rounded-full mt-1";
+        
+        if (step === 0) {
+            homeBtn.className = "flex-1 flex flex-col items-center justify-start text-brand mt-1 transition-colors";
+            document.getElementById('nav-text-home').className = "text-[9px] font-bold";
+            document.getElementById('nav-bar-home').className = "w-[18px] h-0.5 bg-brand rounded-full mt-1";
+            document.getElementById('nav-icon-home').setAttribute('fill', '#6BBF4E');
+        } else if (step === 1) {
+            collBtn.className = "flex-1 flex flex-col items-center justify-start text-brand pl-6 mt-1 transition-colors";
+            document.getElementById('nav-text-collection').className = "text-[9px] font-bold";
+            document.getElementById('nav-bar-collection').className = "w-[18px] h-0.5 bg-brand rounded-full mt-1";
+            document.getElementById('nav-icon-collection').setAttribute('fill', '#6BBF4E');
+        }
+    }
+
+    function updateGlobalHeader(step) {
+        const topText = document.querySelector('.flex.justify-center.items-center.pb-2');
+        const backBtn = document.getElementById('global-back');
+        const titleText = document.getElementById('global-title');
+        
+        if(step === 0 || step === 1) {
+            topText.style.opacity = '1';
+            backBtn.classList.add('hidden');
+            titleText.classList.add('hidden');
+            document.getElementById('bottom-nav').classList.remove('nav-hidden');
+            updateNavState(step);
+        } else {
+            topText.style.opacity = '0';
+            backBtn.classList.remove('hidden');
+            titleText.classList.remove('hidden');
+            titleText.innerText = titles[step];
+            document.getElementById('bottom-nav').classList.add('nav-hidden');
+        }
+    }
+
+    function goToStep(stepNumber) {
+        if(stepNumber === currentStep) return;
+        
+        if (stepNumber === 5) {
+            const inputName = document.getElementById('product-name-input');
+            const displaySpan = document.getElementById('product-name-display');
+            if (inputName && displaySpan) {
+                displaySpan.innerText = inputName.value.trim() || 'New Item';
+            }
+            
+            const firstUploadedImage = document.querySelector('#photo-preview-container img');
+            const thumbnailContainer = document.getElementById('final-product-thumbnail');
+            if (firstUploadedImage && thumbnailContainer) {
+                thumbnailContainer.innerHTML = `<img src="${firstUploadedImage.src}" class="w-full h-full object-cover">`;
+                thumbnailContainer.classList.remove('bg-blue-100');
+            }
+        }
+        
+        const current = document.getElementById(`step${currentStep}`);
+        const next = document.getElementById(`step${stepNumber}`);
+        
+        current.classList.remove('step-active');
+        if(stepNumber > currentStep) {
+            current.classList.add('step-hidden-left');
+            next.classList.remove('step-hidden-right');
+        } else {
+            current.classList.add('step-hidden-right');
+            next.classList.remove('step-hidden-left');
+        }
+        
+        next.classList.add('step-active');
+        currentStep = stepNumber;
+        updateGlobalHeader(stepNumber);
+    }
+
+    function goBack() {
+        if (currentStep === 5 && creatorMode === 'behalf') {
+            goToStep(3);
+        } else if (currentStep > 0) {
+            let prev = currentStep - 1;
+            goToStep(prev);
+        }
+    }
+
+    function selectPrivacy(labelEl) {
+        // Reset all
+        document.querySelectorAll('.radio-btn').forEach(btn => {
+            btn.classList.remove('radio-selected');
+        });
+        
+        // Select clicked
+        const radio = labelEl.querySelector('.radio-btn');
+        radio.classList.add('radio-selected');
+        
+        // Enable continue btn
+        const contBtn = document.getElementById('step5-continue');
+        contBtn.classList.remove('bg-[#a3d891]', 'pointer-events-none');
+        contBtn.classList.add('bg-brand');
+    }
+
+    function toggleCreatorMode(mode, labelEl) {
+        document.querySelectorAll('.radio-btn-creator').forEach(btn => {
+            btn.className = "w-[22px] h-[22px] rounded-full border-2 border-[#d1d5db] flex items-center justify-center shrink-0 radio-btn-creator transition-all";
+            btn.parentElement.className = "border border-gray-200 rounded-xl p-[18px] flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-brand";
+        });
+        
+        const radio = labelEl.querySelector('.radio-btn-creator');
+        radio.className = "w-[22px] h-[22px] rounded-full border-[6px] border-brand bg-white flex items-center justify-center shrink-0 radio-btn-creator transition-all shadow-sm";
+        labelEl.className = "border border-brand rounded-xl p-[18px] flex items-center justify-between cursor-pointer focus-within:ring-1 focus-within:ring-brand bg-[#f0f9eb] shadow-sm";
+        
+        creatorMode = mode;
+        if(mode === 'creator') {
+            document.getElementById('behalf-section').classList.add('hidden');
+        } else {
+            document.getElementById('behalf-section').classList.remove('hidden');
+        }
+        
+        // Enable continue btn for step 3
+        const contBtn = document.getElementById('step3-continue');
+        if(contBtn) {
+            contBtn.classList.remove('bg-[#a3d891]', 'pointer-events-none');
+            contBtn.classList.add('bg-brand');
+        }
+    }
+
+    function continueFromCreatorRoles() {
+        if (creatorMode === 'creator') {
+            goToStep(4);
+        } else if (creatorMode === 'behalf') {
+            goToStep(5);
+        }
+    }
+    function handlePhotoUpload(event) {
+        const files = event.target.files;
+        if (!files || files.length === 0) return;
+        
+        const previewContainer = document.getElementById('photo-preview-container');
+        const placeholder = document.getElementById('photo-placeholder');
+        
+        placeholder.classList.add('hidden');
+        previewContainer.classList.remove('hidden');
+        
+        for (let i = 0; i < files.length; i++) {
+            const file = files[i];
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const imgContainer = document.createElement('div');
+                imgContainer.className = "w-full aspect-square rounded-[14px] overflow-hidden shadow-sm relative border border-gray-100";
+                
+                const img = document.createElement('img');
+                img.src = e.target.result;
+                img.className = "w-full h-full object-cover";
+                
+                const removeBtn = document.createElement('button');
+                removeBtn.className = "absolute top-2 right-2 w-6 h-6 bg-black/50 hover:bg-black/70 rounded-full flex items-center justify-center text-white backdrop-blur-sm transition-colors";
+                removeBtn.innerHTML = '<i data-lucide="x" class="w-3 h-3"></i>';
+                removeBtn.onclick = function() {
+                    imgContainer.remove();
+                    if (previewContainer.children.length === 0) {
+                        previewContainer.classList.add('hidden');
+                        placeholder.classList.remove('hidden');
+                        document.getElementById('photo-upload').value = ""; // reset
+                    }
+                };
+                
+                imgContainer.appendChild(img);
+                imgContainer.appendChild(removeBtn);
+                previewContainer.appendChild(imgContainer);
+                lucide.createIcons();
+            }
+            
+            reader.readAsDataURL(file);
+        }
+    }
+    function addTag() {
+        const input = document.getElementById('tag-input');
+        const val = input.value.trim();
+        if(!val) return;
+        
+        const container = document.getElementById('tags-container');
+        
+        const tag = document.createElement('div');
+        tag.className = "bg-[#eff8ea] border border-[#d2ebc8] text-brand px-3 py-1.5 rounded-[8px] flex items-center gap-1.5 text-[13px] font-semibold shadow-sm transition-all";
+        
+        const textStr = document.createElement('span');
+        textStr.innerText = val;
+        
+        const remBtn = document.createElement('button');
+        remBtn.innerHTML = '<i data-lucide="x" class="w-3.5 h-3.5"></i>';
+        remBtn.className = "text-[#6BBF4E] hover:text-red-500 transition-colors bg-white rounded-full p-0.5 shadow-sm border border-[#e2eedc]";
+        remBtn.onclick = function() { tag.remove(); };
+        
+        tag.appendChild(textStr);
+        tag.appendChild(remBtn);
+        container.appendChild(tag);
+        
+        lucide.createIcons({root: tag});
+        input.value = '';
+    }
+
+    // Initialize Custom Dropdowns
+    document.querySelectorAll('.custom-dropdown').forEach(dropdown => {
+        const selected = dropdown.querySelector('.dropdown-selected');
+        const menu = dropdown.querySelector('.dropdown-menu');
+        const text = dropdown.querySelector('.dropdown-text');
+        const icon = dropdown.querySelector('.dropdown-icon');
+        
+        selected.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Close all others
+            document.querySelectorAll('.dropdown-menu').forEach(m => {
+                if (m !== menu) {
+                    m.classList.add('hidden');
+                    m.previousElementSibling.querySelector('.dropdown-icon').style.transform = 'rotate(0deg)';
+                }
+            });
+            menu.classList.toggle('hidden');
+            icon.style.transform = menu.classList.contains('hidden') ? 'rotate(0deg)' : 'rotate(180deg)';
+        });
+        
+        menu.querySelectorAll('.dropdown-option').forEach(option => {
+            option.addEventListener('click', (e) => {
+                e.stopPropagation();
+                text.innerText = option.innerText;
+                text.classList.remove('text-gray-400');
+                text.classList.add('text-gray-900', 'font-medium');
+                menu.classList.add('hidden');
+                icon.style.transform = 'rotate(0deg)';
+                
+                // Add tiny bounce animation to text to show selection
+                text.style.transform = 'scale(0.97)';
+                setTimeout(() => text.style.transform = 'scale(1)', 100);
+                
+                // Dynamic Royalty Form Switcher
+                if (dropdown.id === 'dropdown-royalty-type') {
+                    const value = option.dataset.value;
+                    document.querySelectorAll('.royalty-form-block').forEach(blk => {
+                        blk.classList.add('hidden');
+                        blk.classList.remove('block');
+                    });
+                    const targetBlock = document.getElementById('royalty-' + value);
+                    if (targetBlock) {
+                        targetBlock.classList.remove('hidden');
+                        targetBlock.classList.add('block');
+                        setTimeout(() => lucide.createIcons(), 50); // Ensure icons render
+                    }
+                }
+            });
+        });
+    });
+    
+    // Close dropdowns when clicking outside
+    document.addEventListener('click', () => {
+        document.querySelectorAll('.dropdown-menu').forEach(menu => {
+            menu.classList.add('hidden');
+            menu.previousElementSibling.querySelector('.dropdown-icon').style.transform = 'rotate(0deg)';
+        });
+    });
+</script>
+</body>
+</html>
